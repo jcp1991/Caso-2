@@ -1,0 +1,61 @@
+---
+- name: Configurar servidor web con Podman en Azure
+  hosts: webserver  
+
+  tasks:
+    - name: Actualizar el sistema
+      become: true  # Ejecutar como superusuario
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Instalar Podman y herramientas necesarias
+      become: true
+      apt:
+        name:
+          - podman
+          - apache2-utils  
+        state: present
+
+    - name: Generar certificado autofirmado
+      become: true
+      command: >
+        openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+          -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=curso.promoemail.es" \
+          -keyout /etc/ssl/private/apache-selfsigned.key \
+          -out /etc/ssl/certs/apache-selfsigned.crt
+
+    - name: Copiar archivo de configuración de Apache
+      become: true
+      template:
+        src: templates/apache2.conf.j2
+        dest: /etc/apache2/apache2.conf
+      notify:
+        - Restart Apache
+
+    - name: Crear contenedor con servidor web usando Podman
+      become: true
+      command: podman run -d -p 443:443 --name webserver \
+               -v /etc/ssl/certs/apache-selfsigned.crt:/etc/ssl/certs/apache-selfsigned.crt \
+               -v /etc/ssl/private/apache-selfsigned.key:/etc/ssl/private/apache-selfsigned.key \
+               docker.io/library/httpd:latest
+
+    - name: Abrir puerto 443 en el firewall (ufw)
+      ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+
+    - name: Habilitar servicio ufw
+      become: true
+      service:
+        name: ufw
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Apache
+      become: true
+      service:
+        name: apache2
+        state: restarted

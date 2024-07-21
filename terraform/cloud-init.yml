@@ -1,0 +1,10 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - openssh-server
+runcmd:
+  - systemctl enable ssh
+  - systemctl start ssh
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDI4C7TRj1OaWOdcLNJuoK5rDF6+6ild+PiVcCbvkGmICY2f2M+CU3bVdcjAU7em1mRJBCBK4/AylOhjI6WaCLAEnkpZRsjgalHX5Pv0QRFq0e/gRrUW0NifTZY/D4u8E4bbemlF8sqbwynz1QlCXqoVxX1mNuVMiSviQ/BJszj1ZQ5eaHLYYdO5Nr4Qt4oeQOY/DZX0YegrFAXbs7NbW9nPy5+LhhPqighc/PHoGqGJGgo9pG+y2R5iG9Zqdyc6IFCzRexnsStV0P4jcaFGbnKUrYdLIhSw1ohlD2sZvZ4MEp1CgXq++egxNZm5KVV5PDqBxGisW9DNzRFMEzuy3OV jose.coca@ACCOM-P-0022
